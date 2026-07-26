@@ -13,48 +13,63 @@ box-sizing:border-box;
 }
 
 body{
+
 margin:0;
 font-family:Arial;
 background:#111827;
 color:white;
-height:100vh;
-display:flex;
-justify-content:center;
+
 }
 
 
-.container{
-width:100%;
-max-width:500px;
+.app{
+
 height:100vh;
+max-width:500px;
+margin:auto;
 display:flex;
 flex-direction:column;
+
 }
+
 
 
 .login{
+
 padding:20px;
+
 }
+
 
 
 input,button{
 
-width:100%;
-padding:15px;
-margin:5px 0;
-
+padding:14px;
 border-radius:20px;
 border:0;
-
 font-size:16px;
 
 }
+
+
+
+input{
+
+width:100%;
+background:#374151;
+color:white;
+margin:5px 0;
+
+}
+
 
 
 button{
 
 background:#2563eb;
 color:white;
+width:100%;
+margin:5px 0;
 
 }
 
@@ -65,7 +80,6 @@ color:white;
 background:#2563eb;
 padding:15px;
 font-size:20px;
-font-weight:bold;
 
 }
 
@@ -75,9 +89,8 @@ font-weight:bold;
 
 flex:1;
 overflow-y:auto;
+background:#0b1220;
 padding:15px;
-
-background:#0f172a;
 
 }
 
@@ -85,19 +98,16 @@ background:#0f172a;
 
 .msg{
 
-max-width:75%;
 padding:12px;
 margin:8px 0;
-
+max-width:75%;
 border-radius:18px;
-
-word-wrap:break-word;
 
 }
 
 
 
-.me{
+.mine{
 
 background:#2563eb;
 margin-left:auto;
@@ -117,9 +127,8 @@ margin-right:auto;
 
 .time{
 
-font-size:10px;
+font-size:11px;
 opacity:.7;
-margin-top:5px;
 
 }
 
@@ -127,18 +136,18 @@ margin-top:5px;
 
 .bottom{
 
-padding:10px;
-background:#1f2937;
-
 display:flex;
 gap:5px;
+padding:10px;
+background:#1f2937;
 
 }
 
 
+
 .bottom input{
 
-margin:0;
+flex:1;
 
 }
 
@@ -146,8 +155,7 @@ margin:0;
 
 .send{
 
-width:60px;
-border-radius:50%;
+width:55px;
 
 }
 
@@ -161,7 +169,8 @@ border-radius:50%;
 <body>
 
 
-<div class="container">
+<div class="app">
+
 
 
 <div id="login" class="login">
@@ -173,8 +182,10 @@ border-radius:50%;
 <input id="numer" placeholder="Twój numer">
 
 
-<button onclick="start()">
+<button onclick="login()">
+
 Zaloguj
+
 </button>
 
 
@@ -183,7 +194,8 @@ Zaloguj
 
 
 
-<div id="app" style="display:none;height:100%;flex-direction:column">
+<div id="main" style="display:none;height:100%;flex-direction:column">
+
 
 
 <div class="header">
@@ -194,9 +206,27 @@ Zaloguj
 
 
 
-<div id="wiadomosci" class="chat">
+<div style="padding:10px;background:#111827">
+
+
+<input id="odbiorca" placeholder="Numer rozmówcy">
+
+
+<button onclick="openChat()">
+
+Otwórz rozmowę
+
+</button>
+
 
 </div>
+
+
+
+<div id="chat" class="chat">
+
+</div>
+
 
 
 
@@ -206,16 +236,18 @@ Zaloguj
 <input id="tekst" placeholder="Napisz wiadomość">
 
 
-<button class="send" onclick="send()">
+<button class="send" onclick="sendMessage()">
+
 ➤
+
 </button>
 
 
 </div>
 
 
-
 </div>
+
 
 
 </div>
@@ -230,7 +262,6 @@ Zaloguj
 import {initializeApp}
 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
 
 
 import {
@@ -253,6 +284,7 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
 
+
 apiKey:"AIzaSyA3J98sguMxYYrl9XfsnnjmlTh329f4C7o",
 
 authDomain:"anochat-d527f.firebaseapp.com",
@@ -267,30 +299,39 @@ messagingSenderId:"544298917613",
 
 appId:"1:544298917613:web:85fc95a2fce6d6054ff6e4"
 
+
 };
+
 
 
 
 const app = initializeApp(firebaseConfig);
 
 
-const db=getDatabase(app);
+const db = getDatabase(app);
 
 
 
 let user="";
 
+let currentChat="";
+
+let unsubscribe=null;
 
 
 
 
-window.start=function(){
+window.login=function(){
 
 
-user=document.getElementById("numer").value;
+user=document
+.getElementById("numer")
+.value
+.trim();
 
 
-if(!user){
+
+if(user==""){
 
 alert("Podaj numer");
 
@@ -300,16 +341,19 @@ return;
 
 
 
-document.getElementById("login").style.display="none";
+document
+.getElementById("login")
+.style.display="none";
 
 
-document.getElementById("app").style.display="flex";
+document
+.getElementById("main")
+.style.display="flex";
 
 
-document.getElementById("konto").innerHTML=user;
-
-
-listen();
+document
+.getElementById("konto")
+.innerHTML=user;
 
 
 }
@@ -319,33 +363,95 @@ listen();
 
 
 
-window.send=function(){
-
-
-let text=document.getElementById("tekst").value.trim();
-
-
-if(!text)return;
+window.openChat=function(){
 
 
 
-push(ref(db,"messages"),{
+let other=document
+.getElementById("odbiorca")
+.value
+.trim();
 
+
+
+if(other==""){
+
+alert("Podaj numer rozmówcy");
+
+return;
+
+}
+
+
+
+// tworzy zawsze ten sam chat dla dwóch osób
+
+currentChat=[user,other]
+.sort()
+.join("_");
+
+
+
+loadMessages();
+
+
+}
+
+
+
+
+
+
+window.sendMessage=function(){
+
+
+
+let text=document
+.getElementById("tekst")
+.value
+.trim();
+
+
+
+if(!currentChat){
+
+alert("Najpierw otwórz rozmowę");
+
+return;
+
+}
+
+
+
+if(text=="")return;
+
+
+
+push(
+
+ref(
+db,
+"chats/"+currentChat+"/messages"
+),
+
+{
 
 from:user,
 
-
 text:text,
-
 
 time:Date.now()
 
-
-});
-
+}
 
 
-document.getElementById("tekst").value="";
+);
+
+
+
+document
+.getElementById("tekst")
+.value="";
 
 
 }
@@ -355,60 +461,45 @@ document.getElementById("tekst").value="";
 
 
 
-document.getElementById("tekst")
 
-.addEventListener("keydown",e=>{
+function loadMessages(){
 
 
-if(e.key==="Enter"){
 
-send();
+if(unsubscribe){
+
+unsubscribe();
 
 }
 
 
-});
 
+onValue(
 
+ref(
+db,
+"chats/"+currentChat+"/messages"
+),
 
-
-
-
-
-function listen(){
-
-
-onValue(ref(db,"messages"),snap=>{
+snap=>{
 
 
 let html="";
 
 
-snap.forEach(x=>{
+
+snap.forEach(item=>{
 
 
-let m=x.val();
-
-
-
-let godzina=
-
-new Date(m.time)
-
-.toLocaleTimeString([],{
-
-hour:"2-digit",
-
-minute:"2-digit"
-
-});
-
+let m=item.val();
 
 
 
 html+=`
 
-<div class="msg ${m.from==user?'me':'other'}">
+
+<div class="msg ${m.from==user?'mine':'other'}">
+
 
 <b>${m.from}</b><br>
 
@@ -417,7 +508,8 @@ ${m.text}
 
 <div class="time">
 
-${godzina}
+${new Date(m.time)
+.toLocaleTimeString()}
 
 </div>
 
@@ -428,15 +520,18 @@ ${godzina}
 `;
 
 
-
 });
 
 
 
-let box=document.getElementById("wiadomosci");
+document
+.getElementById("chat")
+.innerHTML=html;
 
 
-box.innerHTML=html;
+
+let box=document
+.getElementById("chat");
 
 
 box.scrollTop=box.scrollHeight;
@@ -445,7 +540,29 @@ box.scrollTop=box.scrollHeight;
 
 });
 
+
 }
+
+
+
+
+
+
+document
+.getElementById("tekst")
+.addEventListener(
+"keydown",
+function(e){
+
+
+if(e.key==="Enter"){
+
+sendMessage();
+
+}
+
+
+});
 
 
 
@@ -453,5 +570,4 @@ box.scrollTop=box.scrollHeight;
 
 
 </body>
-
 </html>
