@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,23 +15,31 @@ box-sizing:border-box;
 
 body{
 margin:0;
-font-family:Arial;
+font-family:Arial,sans-serif;
 background:#111827;
 color:white;
+height:100vh;
 }
 
 
 .login{
+
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
 padding:30px;
+
 }
 
 
 input,button{
 
 padding:14px;
+border:none;
 border-radius:20px;
-border:0;
 font-size:16px;
+margin:5px;
 
 }
 
@@ -39,8 +48,6 @@ input{
 
 background:#374151;
 color:white;
-width:100%;
-margin:5px 0;
 
 }
 
@@ -54,39 +61,66 @@ cursor:pointer;
 }
 
 
-.app{
+
+#messenger{
 
 display:none;
 height:100vh;
 }
 
 
+
 .sidebar{
 
-width:35%;
+width:300px;
 background:#1f2937;
+display:flex;
+flex-direction:column;
 border-right:1px solid #374151;
-padding:10px;
 
 }
 
 
-.title{
 
-font-size:22px;
+.logo{
+
+padding:20px;
+font-size:24px;
 font-weight:bold;
+
+}
+
+
+
+.add{
+
 padding:10px;
 
 }
+
+
+
+.contacts{
+
+overflow:auto;
+flex:1;
+
+}
+
 
 
 .contact{
 
-background:#374151;
-padding:12px;
-margin:5px 0;
-border-radius:15px;
+padding:15px;
 cursor:pointer;
+border-bottom:1px solid #374151;
+
+}
+
+
+.contact:hover{
+
+background:#374151;
 
 }
 
@@ -94,17 +128,18 @@ cursor:pointer;
 
 .chat{
 
-width:65%;
+flex:1;
 display:flex;
 flex-direction:column;
 
 }
 
 
-.header{
+
+.chat-header{
 
 background:#2563eb;
-padding:15px;
+padding:18px;
 font-size:20px;
 
 }
@@ -114,7 +149,7 @@ font-size:20px;
 .messages{
 
 flex:1;
-overflow-y:auto;
+overflow:auto;
 padding:15px;
 background:#0b1220;
 
@@ -122,14 +157,15 @@ background:#0b1220;
 
 
 
-.msg{
+.message{
 
-padding:10px 15px;
-margin:8px;
-border-radius:18px;
 max-width:70%;
+padding:12px;
+border-radius:18px;
+margin:8px 0;
 
 }
+
 
 
 .mine{
@@ -138,6 +174,7 @@ background:#2563eb;
 margin-left:auto;
 
 }
+
 
 
 .other{
@@ -152,10 +189,10 @@ background:#374151;
 
 display:flex;
 padding:10px;
-gap:5px;
 background:#1f2937;
 
 }
+
 
 
 .bottom input{
@@ -163,6 +200,7 @@ background:#1f2937;
 flex:1;
 
 }
+
 
 
 .send{
@@ -173,7 +211,9 @@ width:60px;
 
 
 
+
 @media(max-width:700px){
+
 
 .sidebar{
 
@@ -181,15 +221,19 @@ width:40%;
 
 }
 
+
 .chat{
 
 width:60%;
 
 }
 
+
 }
 
+
 </style>
+
 
 </head>
 
@@ -197,16 +241,17 @@ width:60%;
 <body>
 
 
+
 <div id="login" class="login">
 
 
-<h1>💬 Messenger</h1>
+<h1>💬 Mini Messenger</h1>
 
 
-<input id="myNumber" placeholder="Twój numer">
+<input id="username" placeholder="Twój numer">
 
 
-<button onclick="start()">
+<button onclick="login()">
 
 Wejdź
 
@@ -218,35 +263,40 @@ Wejdź
 
 
 
-
-<div id="app" class="app">
+<div id="messenger">
 
 
 <div class="sidebar">
 
 
-<div class="title">
+<div class="logo">
 
-Rozmowy
+💬 Chat
 
 </div>
 
 
+<div class="add">
 
-<input id="newContact" placeholder="Numer osoby">
+
+<input id="newUser" placeholder="Dodaj osobę">
 
 
 <button onclick="addContact()">
 
-Dodaj
++
 
 </button>
 
 
+</div>
 
-<div id="contacts">
+
+
+<div id="contacts" class="contacts">
 
 </div>
+
 
 
 </div>
@@ -258,13 +308,9 @@ Dodaj
 <div class="chat">
 
 
-<div class="header">
-
-<span id="chatName">
+<div id="chatTitle" class="chat-header">
 
 Wybierz rozmowę
-
-</span>
 
 </div>
 
@@ -279,10 +325,10 @@ Wybierz rozmowę
 <div class="bottom">
 
 
-<input id="text" placeholder="Napisz wiadomość">
+<input id="message" placeholder="Napisz wiadomość">
 
 
-<button class="send" onclick="send()">
+<button class="send" onclick="sendMessage()">
 
 ➤
 
@@ -292,12 +338,12 @@ Wybierz rozmowę
 </div>
 
 
-</div>
-
-
 
 </div>
 
+
+
+</div>
 
 
 
@@ -307,7 +353,6 @@ Wybierz rozmowę
 
 
 import {initializeApp}
-
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
 
@@ -331,7 +376,7 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
 
-const firebaseConfig={
+const firebaseConfig = {
 
 
 apiKey:"AIzaSyA3J98sguMxYYrl9XfsnnjmlTh329f4C7o",
@@ -353,27 +398,28 @@ appId:"1:544298917613:web:85fc95a2fce6d6054ff6e4"
 
 
 
-const app=initializeApp(firebaseConfig);
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
 
 
-const db=getDatabase(app);
 
+let user = "";
 
-
-let user="";
-
-let current="";
-
-let contacts=[];
+let currentChat = "";
 
 
 
 
 
-window.start=function(){
+window.login = function(){
 
 
-user=document.getElementById("myNumber").value.trim();
+user = document
+.getElementById("username")
+.value
+.trim();
 
 
 
@@ -387,10 +433,15 @@ return;
 
 
 
-document.getElementById("login").style.display="none";
+document
+.getElementById("login")
+.style.display="none";
 
 
-document.getElementById("app").style.display="flex";
+
+document
+.getElementById("messenger")
+.style.display="flex";
 
 
 
@@ -405,49 +456,40 @@ loadContacts();
 
 
 
-function loadContacts(){
+window.addContact=function(){
 
 
-onValue(ref(db,"users/"+user+"/contacts"),snap=>{
-
-
-let html="";
-
-
-contacts=[];
-
-
-snap.forEach(x=>{
-
-
-let name=x.val();
-
-
-contacts.push(name);
-
-
-html+=`
-
-<div class="contact"
-onclick="openChat('${name}')">
-
-👤 ${name}
-
-</div>
-
-`;
+let person=document
+.getElementById("newUser")
+.value
+.trim();
 
 
 
-});
+if(!person){
+
+return;
+
+}
 
 
 
-document.getElementById("contacts").innerHTML=html;
+set(
+
+ref(
+db,
+"users/"+user+"/contacts/"+person
+),
+
+true
+
+);
 
 
 
-});
+document
+.getElementById("newUser")
+.value="";
 
 
 }
@@ -457,34 +499,54 @@ document.getElementById("contacts").innerHTML=html;
 
 
 
-window.addContact=function(){
+
+function loadContacts(){
 
 
-let name=document
-.getElementById("newContact")
-.value
-.trim();
-
-
-
-if(!name)return;
-
-
-
-set(
+onValue(
 
 ref(
 db,
-"users/"+user+"/contacts/"+name
+"users/"+user+"/contacts"
 ),
 
-name
-
-);
+snap=>{
 
 
+let html="";
 
-document.getElementById("newContact").value="";
+
+snap.forEach(x=>{
+
+
+let person=x.key;
+
+
+
+html+=`
+
+<div class="contact"
+
+onclick="openChat('${person}')">
+
+👤 ${person}
+
+</div>
+
+`;
+
+
+});
+
+
+
+document
+.getElementById("contacts")
+.innerHTML=html;
+
+
+
+});
 
 
 }
@@ -499,15 +561,16 @@ document.getElementById("newContact").value="";
 window.openChat=function(person){
 
 
-current=[user,person]
+
+currentChat=[user,person]
 .sort()
 .join("_");
 
 
 
-document.getElementById("chatName").innerHTML=
-
-"👤 "+person;
+document
+.getElementById("chatTitle")
+.innerHTML="👤 "+person;
 
 
 
@@ -522,14 +585,16 @@ loadMessages();
 
 
 
+
 function loadMessages(){
+
 
 
 onValue(
 
 ref(
 db,
-"chats/"+current
+"chats/"+currentChat+"/messages"
 ),
 
 snap=>{
@@ -538,33 +603,43 @@ snap=>{
 let html="";
 
 
+
 snap.forEach(x=>{
 
 
 let m=x.val();
 
 
+
 html+=`
 
-<div class="msg ${m.from==user?'mine':'other'}">
+<div class="message ${m.from==user?"mine":"other"}">
+
 
 ${m.text}
+
 
 </div>
 
 `;
 
 
-
 });
 
 
-document.getElementById("messages").innerHTML=html;
+
+document
+.getElementById("messages")
+.innerHTML=html;
 
 
-let box=document.getElementById("messages");
+
+let box=document
+.getElementById("messages");
+
 
 box.scrollTop=box.scrollHeight;
+
 
 
 });
@@ -577,17 +652,35 @@ box.scrollTop=box.scrollHeight;
 
 
 
-window.send=function(){
+
+
+window.sendMessage=function(){
+
 
 
 let text=document
-.getElementById("text")
+.getElementById("message")
 .value
 .trim();
 
 
 
-if(!text || !current)return;
+if(!text){
+
+return;
+
+}
+
+
+
+if(!currentChat){
+
+alert("Najpierw wybierz rozmowę");
+
+return;
+
+}
+
 
 
 
@@ -595,10 +688,11 @@ push(
 
 ref(
 db,
-"chats/"+current
+"chats/"+currentChat+"/messages"
 ),
 
 {
+
 
 from:user,
 
@@ -606,16 +700,20 @@ text:text,
 
 time:Date.now()
 
+
 }
 
 );
 
 
 
-document.getElementById("text").value="";
+document
+.getElementById("message")
+.value="";
 
 
 }
+
 
 
 
@@ -623,18 +721,26 @@ document.getElementById("text").value="";
 
 
 document
-.getElementById("text")
+.getElementById("message")
 .addEventListener(
 "keydown",
-e=>{
+function(e){
 
-if(e.key==="Enter")send();
+
+if(e.key==="Enter"){
+
+sendMessage();
+
+}
+
 
 });
+
 
 
 </script>
 
 
 </body>
+
 </html>
