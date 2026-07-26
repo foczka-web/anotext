@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 import { useEffect, useRef, useState } from "react";
+
 export const Route = createFileRoute("/")({
-  component: Index,
   head: () => ({
     meta: [
       { title: "Mini Messenger — Rozmawiaj i wysyłaj zdjęcia" },
@@ -24,8 +21,7 @@ export const Route = createFileRoute("/")({
   }),
   component: Messenger,
 });
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+
 type Msg = {
   id: string;
   from: "me" | "them";
@@ -33,6 +29,7 @@ type Msg = {
   image?: string;
   time: number;
 };
+
 type Contact = {
   id: string;
   name: string;
@@ -40,6 +37,7 @@ type Contact = {
   color: string;
   messages: Msg[];
 };
+
 const AVATAR_COLORS = [
   "from-fuchsia-500 to-pink-500",
   "from-sky-500 to-indigo-500",
@@ -49,6 +47,7 @@ const AVATAR_COLORS = [
   "from-violet-500 to-purple-500",
 ];
 const EMOJIS = ["🦊", "🐼", "🐸", "🦄", "🐙", "🐧", "🐳", "🦁"];
+
 function makeContact(name: string, i: number): Contact {
   return {
     id: crypto.randomUUID(),
@@ -58,6 +57,7 @@ function makeContact(name: string, i: number): Contact {
     messages: [],
   };
 }
+
 function Messenger() {
   const [user, setUser] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState("");
@@ -67,13 +67,17 @@ function Messenger() {
   const [showAdd, setShowAdd] = useState(false);
   const [newContact, setNewContact] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
+
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
   const active = contacts.find((c) => c.id === activeId) ?? null;
+
   useEffect(() => {
     if (scrollRef.current)
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [active?.messages.length, activeId]);
+
   const login = () => {
     const n = nameInput.trim();
     if (!n) return;
@@ -88,6 +92,7 @@ function Messenger() {
     ];
     setContacts(seed);
   };
+
   const addContact = () => {
     const n = newContact.trim();
     if (!n) return;
@@ -96,6 +101,7 @@ function Messenger() {
     setNewContact("");
     setShowAdd(false);
   };
+
   const send = (payload: { text?: string; image?: string }) => {
     if (!active) return;
     if (!payload.text && !payload.image) return;
@@ -112,6 +118,7 @@ function Messenger() {
     );
     setDraft("");
   };
+
   const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -120,10 +127,12 @@ function Messenger() {
     reader.readAsDataURL(f);
     e.target.value = "";
   };
+
   const openChat = (id: string) => {
     setActiveId(id);
     setMobileView("chat");
   };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_#312e81_0%,_#0b1120_50%,_#000_100%)] flex items-center justify-center px-6">
@@ -158,16 +167,8 @@ function Messenger() {
       </div>
     );
   }
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
     <div className="h-screen w-screen bg-[#0b1120] text-white flex overflow-hidden">
       {/* Sidebar */}
       <aside
@@ -193,6 +194,7 @@ function Messenger() {
             +
           </button>
         </div>
+
         {showAdd && (
           <div className="px-5 pb-3 flex gap-2">
             <input
@@ -210,9 +212,11 @@ function Messenger() {
             </button>
           </div>
         )}
+
         <div className="px-4 pb-2 text-xs uppercase tracking-widest text-white/40">
           Rozmowy
         </div>
+
         <div className="flex-1 overflow-auto px-2 pb-4 space-y-1">
           {contacts.map((c) => {
             const last = c.messages[c.messages.length - 1];
@@ -247,6 +251,7 @@ function Messenger() {
           })}
         </div>
       </aside>
+
       {/* Chat */}
       <main
         className={`${
@@ -278,6 +283,7 @@ function Messenger() {
                 </div>
               </div>
             </header>
+
             <div
               ref={scrollRef}
               className="flex-1 overflow-auto px-4 md:px-8 py-6 space-y-2"
@@ -322,6 +328,7 @@ function Messenger() {
                 );
               })}
             </div>
+
             <div className="p-4 border-t border-white/5 bg-white/[0.02]">
               <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full pl-2 pr-1 py-1 focus-within:border-indigo-400 transition">
                 <button
@@ -376,3 +383,4 @@ function Messenger() {
     </div>
   );
 }
+
