@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Mini Chat</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#111827;
+color:white;
+padding:20px;
+}
+
+input,button{
+width:100%;
+padding:15px;
+margin:5px 0;
+border-radius:10px;
+border:0;
+font-size:16px;
+}
+
+button{
+background:#2563eb;
+color:white;
+}
+
+.box{
+background:#1f2937;
+padding:15px;
+border-radius:15px;
+margin-top:10px;
+}
+
+.msg{
+background:#374151;
+padding:10px;
+margin:5px;
+border-radius:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<h1>💬 Mini Chat</h1>
+
+
+<div id="login">
+
+<input id="numer"
+placeholder="Twój numer">
+
+<button onclick="start()">
+Wejdź
+</button>
+
+</div>
+
+
+
+<div id="chat" style="display:none">
+
+
+<p id="konto"></p>
+
+
+<input id="odbiorca"
+placeholder="Numer odbiorcy">
+
+
+<input id="tekst"
+placeholder="Wiadomość">
+
+
+<button onclick="send()">
+Wyślij
+</button>
+
+
+<div class="box" id="wiadomosci">
+
+</div>
+
+
+</div>
+
+
+
+
+<script type="module">
+
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+
+import {
+getDatabase,
+ref,
+push,
+onValue
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+
+
+
+// TU WKLEISZ FIREBASE CONFIG
+
+
+const firebaseConfig = {
+
+apiKey:"TUTAJ",
+
+authDomain:"TUTAJ",
+
+databaseURL:"TUTAJ",
+
+projectId:"TUTAJ",
+
+storageBucket:"TUTAJ",
+
+messagingSenderId:"TUTAJ",
+
+appId:"TUTAJ"
+
+};
+
+
+const app =
+initializeApp(firebaseConfig);
+
+
+const db =
+getDatabase(app);
+
+
+
+let user="";
+
+
+
+window.start=function(){
+
+user=document.getElementById("numer").value;
+
+
+if(user==""){
+alert("Podaj numer");
+return;
+}
+
+
+document.getElementById("login")
+.style.display="none";
+
+
+document.getElementById("chat")
+.style.display="block";
+
+
+document.getElementById("konto")
+.innerHTML="Zalogowany: "+user;
+
+
+
+listen();
+
+}
+
+
+
+
+
+window.send=function(){
+
+let to=
+document.getElementById("odbiorca").value;
+
+
+let text=
+document.getElementById("tekst").value;
+
+
+
+push(ref(db,"messages"),{
+
+from:user,
+
+to:to,
+
+text:text,
+
+time:Date.now()
+
+});
+
+
+document.getElementById("tekst").value="";
+
+}
+
+
+
+
+function listen(){
+
+onValue(ref(db,"messages"),(snap)=>{
+
+
+let html="";
+
+
+snap.forEach(x=>{
+
+
+let m=x.val();
+
+
+if(m.to==user){
+
+html+=`
+
+<div class="msg">
+
+<b>${m.from}</b><br>
+
+${m.text}
+
+</div>
+
+`;
+
+}
+
+
+});
+
+
+document.getElementById("wiadomosci")
+.innerHTML=html;
+
+
+});
+
+}
+
+
+</script>
+
+
+</body>
+</html>
