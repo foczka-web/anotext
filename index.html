@@ -13,33 +13,16 @@ box-sizing:border-box;
 }
 
 body{
-
 margin:0;
 font-family:Arial;
 background:#111827;
 color:white;
-
 }
-
-
-.app{
-
-height:100vh;
-max-width:500px;
-margin:auto;
-display:flex;
-flex-direction:column;
-
-}
-
 
 
 .login{
-
-padding:20px;
-
+padding:30px;
 }
-
 
 
 input,button{
@@ -52,27 +35,70 @@ font-size:16px;
 }
 
 
-
 input{
 
-width:100%;
 background:#374151;
 color:white;
+width:100%;
 margin:5px 0;
 
 }
-
 
 
 button{
 
 background:#2563eb;
 color:white;
-width:100%;
-margin:5px 0;
+cursor:pointer;
 
 }
 
+
+.app{
+
+display:none;
+height:100vh;
+}
+
+
+.sidebar{
+
+width:35%;
+background:#1f2937;
+border-right:1px solid #374151;
+padding:10px;
+
+}
+
+
+.title{
+
+font-size:22px;
+font-weight:bold;
+padding:10px;
+
+}
+
+
+.contact{
+
+background:#374151;
+padding:12px;
+margin:5px 0;
+border-radius:15px;
+cursor:pointer;
+
+}
+
+
+
+.chat{
+
+width:65%;
+display:flex;
+flex-direction:column;
+
+}
 
 
 .header{
@@ -85,12 +111,12 @@ font-size:20px;
 
 
 
-.chat{
+.messages{
 
 flex:1;
 overflow-y:auto;
-background:#0b1220;
 padding:15px;
+background:#0b1220;
 
 }
 
@@ -98,13 +124,12 @@ padding:15px;
 
 .msg{
 
-padding:12px;
-margin:8px 0;
-max-width:75%;
+padding:10px 15px;
+margin:8px;
 border-radius:18px;
+max-width:70%;
 
 }
-
 
 
 .mine{
@@ -115,20 +140,9 @@ margin-left:auto;
 }
 
 
-
 .other{
 
 background:#374151;
-margin-right:auto;
-
-}
-
-
-
-.time{
-
-font-size:11px;
-opacity:.7;
 
 }
 
@@ -137,12 +151,11 @@ opacity:.7;
 .bottom{
 
 display:flex;
-gap:5px;
 padding:10px;
+gap:5px;
 background:#1f2937;
 
 }
-
 
 
 .bottom input{
@@ -152,14 +165,29 @@ flex:1;
 }
 
 
-
 .send{
 
-width:55px;
+width:60px;
 
 }
 
 
+
+@media(max-width:700px){
+
+.sidebar{
+
+width:40%;
+
+}
+
+.chat{
+
+width:60%;
+
+}
+
+}
 
 </style>
 
@@ -169,22 +197,18 @@ width:55px;
 <body>
 
 
-<div class="app">
-
-
-
 <div id="login" class="login">
 
 
-<h1>💬 Mini Messenger</h1>
+<h1>💬 Messenger</h1>
 
 
-<input id="numer" placeholder="Twój numer">
+<input id="myNumber" placeholder="Twój numer">
 
 
-<button onclick="login()">
+<button onclick="start()">
 
-Zaloguj
+Wejdź
 
 </button>
 
@@ -194,49 +218,71 @@ Zaloguj
 
 
 
-<div id="main" style="display:none;height:100%;flex-direction:column">
 
+<div id="app" class="app">
+
+
+<div class="sidebar">
+
+
+<div class="title">
+
+Rozmowy
+
+</div>
+
+
+
+<input id="newContact" placeholder="Numer osoby">
+
+
+<button onclick="addContact()">
+
+Dodaj
+
+</button>
+
+
+
+<div id="contacts">
+
+</div>
+
+
+</div>
+
+
+
+
+
+<div class="chat">
 
 
 <div class="header">
 
-💬 <span id="konto"></span>
+<span id="chatName">
+
+Wybierz rozmowę
+
+</span>
 
 </div>
 
 
 
-<div style="padding:10px;background:#111827">
-
-
-<input id="odbiorca" placeholder="Numer rozmówcy">
-
-
-<button onclick="openChat()">
-
-Otwórz rozmowę
-
-</button>
-
+<div id="messages" class="messages">
 
 </div>
-
-
-
-<div id="chat" class="chat">
-
-</div>
-
 
 
 
 <div class="bottom">
 
 
-<input id="tekst" placeholder="Napisz wiadomość">
+<input id="text" placeholder="Napisz wiadomość">
 
 
-<button class="send" onclick="sendMessage()">
+<button class="send" onclick="send()">
 
 ➤
 
@@ -251,6 +297,7 @@ Otwórz rozmowę
 
 
 </div>
+
 
 
 
@@ -272,6 +319,8 @@ ref,
 
 push,
 
+set,
+
 onValue
 
 }
@@ -282,7 +331,7 @@ from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
 
-const firebaseConfig = {
+const firebaseConfig={
 
 
 apiKey:"AIzaSyA3J98sguMxYYrl9XfsnnjmlTh329f4C7o",
@@ -304,34 +353,31 @@ appId:"1:544298917613:web:85fc95a2fce6d6054ff6e4"
 
 
 
+const app=initializeApp(firebaseConfig);
 
-const app = initializeApp(firebaseConfig);
 
-
-const db = getDatabase(app);
+const db=getDatabase(app);
 
 
 
 let user="";
 
-let currentChat="";
+let current="";
 
-let unsubscribe=null;
-
-
-
-
-window.login=function(){
-
-
-user=document
-.getElementById("numer")
-.value
-.trim();
+let contacts=[];
 
 
 
-if(user==""){
+
+
+window.start=function(){
+
+
+user=document.getElementById("myNumber").value.trim();
+
+
+
+if(!user){
 
 alert("Podaj numer");
 
@@ -341,19 +387,14 @@ return;
 
 
 
-document
-.getElementById("login")
-.style.display="none";
+document.getElementById("login").style.display="none";
 
 
-document
-.getElementById("main")
-.style.display="flex";
+document.getElementById("app").style.display="flex";
 
 
-document
-.getElementById("konto")
-.innerHTML=user;
+
+loadContacts();
 
 
 }
@@ -363,32 +404,110 @@ document
 
 
 
-window.openChat=function(){
+
+function loadContacts(){
+
+
+onValue(ref(db,"users/"+user+"/contacts"),snap=>{
+
+
+let html="";
+
+
+contacts=[];
+
+
+snap.forEach(x=>{
+
+
+let name=x.val();
+
+
+contacts.push(name);
+
+
+html+=`
+
+<div class="contact"
+onclick="openChat('${name}')">
+
+👤 ${name}
+
+</div>
+
+`;
 
 
 
-let other=document
-.getElementById("odbiorca")
+});
+
+
+
+document.getElementById("contacts").innerHTML=html;
+
+
+
+});
+
+
+}
+
+
+
+
+
+
+window.addContact=function(){
+
+
+let name=document
+.getElementById("newContact")
 .value
 .trim();
 
 
 
-if(other==""){
+if(!name)return;
 
-alert("Podaj numer rozmówcy");
 
-return;
+
+set(
+
+ref(
+db,
+"users/"+user+"/contacts/"+name
+),
+
+name
+
+);
+
+
+
+document.getElementById("newContact").value="";
+
 
 }
 
 
 
-// tworzy zawsze ten sam chat dla dwóch osób
 
-currentChat=[user,other]
+
+
+
+
+window.openChat=function(person){
+
+
+current=[user,person]
 .sort()
 .join("_");
+
+
+
+document.getElementById("chatName").innerHTML=
+
+"👤 "+person;
 
 
 
@@ -402,28 +521,73 @@ loadMessages();
 
 
 
-window.sendMessage=function(){
+
+function loadMessages(){
+
+
+onValue(
+
+ref(
+db,
+"chats/"+current
+),
+
+snap=>{
+
+
+let html="";
+
+
+snap.forEach(x=>{
+
+
+let m=x.val();
+
+
+html+=`
+
+<div class="msg ${m.from==user?'mine':'other'}">
+
+${m.text}
+
+</div>
+
+`;
 
 
 
-let text=document
-.getElementById("tekst")
-.value
-.trim();
+});
 
 
+document.getElementById("messages").innerHTML=html;
 
-if(!currentChat){
 
-alert("Najpierw otwórz rozmowę");
+let box=document.getElementById("messages");
 
-return;
+box.scrollTop=box.scrollHeight;
+
+
+});
+
 
 }
 
 
 
-if(text=="")return;
+
+
+
+window.send=function(){
+
+
+let text=document
+.getElementById("text")
+.value
+.trim();
+
+
+
+if(!text || !current)return;
 
 
 
@@ -431,7 +595,7 @@ push(
 
 ref(
 db,
-"chats/"+currentChat+"/messages"
+"chats/"+current
 ),
 
 {
@@ -444,101 +608,11 @@ time:Date.now()
 
 }
 
-
 );
 
 
 
-document
-.getElementById("tekst")
-.value="";
-
-
-}
-
-
-
-
-
-
-
-function loadMessages(){
-
-
-
-if(unsubscribe){
-
-unsubscribe();
-
-}
-
-
-
-onValue(
-
-ref(
-db,
-"chats/"+currentChat+"/messages"
-),
-
-snap=>{
-
-
-let html="";
-
-
-
-snap.forEach(item=>{
-
-
-let m=item.val();
-
-
-
-html+=`
-
-
-<div class="msg ${m.from==user?'mine':'other'}">
-
-
-<b>${m.from}</b><br>
-
-${m.text}
-
-
-<div class="time">
-
-${new Date(m.time)
-.toLocaleTimeString()}
-
-</div>
-
-
-</div>
-
-
-`;
-
-
-});
-
-
-
-document
-.getElementById("chat")
-.innerHTML=html;
-
-
-
-let box=document
-.getElementById("chat");
-
-
-box.scrollTop=box.scrollHeight;
-
-
-
-});
+document.getElementById("text").value="";
 
 
 }
@@ -549,21 +623,14 @@ box.scrollTop=box.scrollHeight;
 
 
 document
-.getElementById("tekst")
+.getElementById("text")
 .addEventListener(
 "keydown",
-function(e){
+e=>{
 
-
-if(e.key==="Enter"){
-
-sendMessage();
-
-}
-
+if(e.key==="Enter")send();
 
 });
-
 
 
 </script>
